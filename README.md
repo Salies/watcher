@@ -1,2 +1,2 @@
 # watcher
-A resource monitor for Windows.
+A resource monitor. At this point only NVIDIA graphics are supported.

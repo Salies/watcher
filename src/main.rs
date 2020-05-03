@@ -1,3 +1,6 @@
+mod ui;
+
 fn main() {
-    println!("Hello, world!");
+    //println!("Hello, world!");
+    ui::init();
 }

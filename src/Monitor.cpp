@@ -1,1 +1,27 @@
 #include "Monitor.h"
+#include "NvidiaMonitor.h"
+
+#include <QDebug>
+#include <QString>
+
+NvidiaMonitor nvidia_monitor;
+
+QVariantMap Monitor::init(){
+    QMap <QString, QVariant>m;
+
+    nvidia_monitor.init();
+    
+    m.insert("graphics_name", nvidia_monitor.get_device_name());
+
+    return QVariantMap(m);
+}
+
+QVariantMap Monitor::getData(){
+    QMap <QString, QVariant>m;
+    //qDebug() << "pegando dados por segundo";
+
+    m.insert("graphics_usage", nvidia_monitor.getDeviceUtilization());
+    m.insert("graphics_temp", nvidia_monitor.getDeviceTemperature());
+
+    return QVariantMap(m);
+}

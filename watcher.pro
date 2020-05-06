@@ -39,3 +39,5 @@ win32: LIBS += -L$$PWD/lib/ -lnvml
 
 INCLUDEPATH += $$PWD/include
 DEPENDPATH += $$PWD/include
+
+RC_ICONS = resources/img/icon.ico

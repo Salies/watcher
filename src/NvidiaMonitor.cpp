@@ -2,44 +2,38 @@
 
 #include <iostream>
 
-void NvidiaMonitor::init(){
+bool NvidiaMonitor::init(){
     nvmlReturn_t result;
-    
-    std::cout << "nvidia monitor iniciado\n";
 
     result = nvmlInit(); //initializes the API
 
-    /*if(result != NVML_SUCCESS)
-        return;*/
+    if(result != NVML_SUCCESS)
+        return false;
     
     unsigned int device_count;
     result = nvmlDeviceGetCount(&device_count); //get number of devices
 
-    /*if(result != NVML_SUCCESS){
-        return;
-    }*/
-
-    std::cout << "O sistema esta rodando em " << device_count << " placa(s)\n";
-
-    if(device_count < 1) //this version of this software doesn't support multiple devices
-        return;
+    if(result != NVML_SUCCESS || device_count < 1) //this version of this software doesn't support multiple devices
+        return false;
 
     result = nvmlDeviceGetHandleByIndex(0, &device);
 
-    /*if(result != NVML_SUCCESS)
-        return;*/
+    if(result != NVML_SUCCESS)
+        return false;
 
+    std::cout << "nvidia monitor iniciado com sucesso\n";
+
+    return true;
+}
+
+QString NvidiaMonitor::get_device_name(){
     char device_name[NVML_DEVICE_NAME_BUFFER_SIZE];
-    result = nvmlDeviceGetName(device, device_name, NVML_DEVICE_NAME_BUFFER_SIZE);
+    nvmlReturn_t result = nvmlDeviceGetName(device, device_name, NVML_DEVICE_NAME_BUFFER_SIZE);
 
     if(result != NVML_SUCCESS)
-        return;
+        return "ERR";
 
-    std::cout << "Nome do dispositivo: " << device_name << "\n";
-
-    std::cout << "Uso da GPU: " << getDeviceUtilization() << "%\n";
-
-    std::cout << "Temperatura da GPU: " << getDeviceTemperature() << " graus Celsius\n";
+    return QString(device_name);
 }
 
 int NvidiaMonitor::getDeviceUtilization(){

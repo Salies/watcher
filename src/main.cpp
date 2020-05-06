@@ -1,7 +1,9 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 
-#include "NvidiaMonitor.h"
+#include <QQmlContext>
+
+#include "Monitor.h"
 
 int main(int argc, char *argv[])
 {
@@ -9,11 +11,11 @@ int main(int argc, char *argv[])
 
     QGuiApplication app(argc, argv);
 
-    NvidiaMonitor nvidia_monitor;
-
-    nvidia_monitor.init();
-
     QQmlApplicationEngine engine;
+
+    Monitor monitor;
+    engine.rootContext()->setContextProperty("monitor", &monitor);
+
     const QUrl url(QStringLiteral("qrc:/main.qml"));
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
                      &app, [url](QObject *obj, const QUrl &objUrl) {
@@ -21,6 +23,8 @@ int main(int argc, char *argv[])
             QCoreApplication::exit(-1);
     }, Qt::QueuedConnection);
     engine.load(url);
+
+    QMetaObject::invokeMethod(engine.rootObjects().first(), "startUp");
 
     return app.exec();
 }

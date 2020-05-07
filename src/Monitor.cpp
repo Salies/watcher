@@ -1,15 +1,18 @@
 #include "Monitor.h"
 #include "NvidiaMonitor.h"
+#include "processormonitor.h"
 
 #include <QDebug>
 #include <QString>
 
 NvidiaMonitor nvidia_monitor;
+ProcessorMonitor processor_monitor;
 
 QVariantMap Monitor::init(){
     QMap <QString, QVariant>m;
 
     nvidia_monitor.init();
+    processor_monitor.init();
     
     m.insert("graphics_name", nvidia_monitor.get_device_name());
 

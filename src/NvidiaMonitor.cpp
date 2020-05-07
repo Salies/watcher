@@ -1,7 +1,5 @@
 #include "NvidiaMonitor.h"
 
-#include <iostream>
-
 bool NvidiaMonitor::init(){
     nvmlReturn_t result;
 
@@ -20,8 +18,6 @@ bool NvidiaMonitor::init(){
 
     if(result != NVML_SUCCESS)
         return false;
-
-    std::cout << "nvidia monitor iniciado com sucesso\n";
 
     return true;
 }

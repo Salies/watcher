@@ -1,7 +1,6 @@
 #include "Monitor.h"
 #include <httplib.h>
 
-#include <iostream>
 #include <iterator>
 
 #define PORT 1234
@@ -23,6 +22,8 @@ int main(void) {
 		for (i = init.begin(); i != init.end(); i++) {
 			json_string.append("\"" + i->first + "\":" + "\"" + i->second + "\",");
 		}
+		json_string.pop_back();
+		json_string.append("}");
 
 		res.set_content(json_string, "application/json");
 	});

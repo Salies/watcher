@@ -22,14 +22,14 @@ bool NvidiaMonitor::init(){
     return true;
 }
 
-QString NvidiaMonitor::get_device_name(){
+std::string NvidiaMonitor::get_device_name(){
     char device_name[NVML_DEVICE_NAME_BUFFER_SIZE];
     nvmlReturn_t result = nvmlDeviceGetName(device, device_name, NVML_DEVICE_NAME_BUFFER_SIZE);
 
     if(result != NVML_SUCCESS)
         return "ERR";
 
-    return QString(device_name);
+    return std::string(device_name);
 }
 
 int NvidiaMonitor::getDeviceUtilization(){

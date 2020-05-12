@@ -1,12 +1,9 @@
 #ifndef PROCESSORMONITOR_H
 #define PROCESSORMONITOR_H
 
-#include <QObject>
-
 #include <Wbemidl.h>
 
-class ProcessorMonitor : public QObject {
-    Q_OBJECT
+class ProcessorMonitor{
 public:
     bool init();
     void release();

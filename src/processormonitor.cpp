@@ -125,7 +125,7 @@ int ProcessorMonitor::queryCIMV2(){
     IWbemClassObject *pclsObj = NULL;
     ULONG uReturn = 0;
    
-    BSTR usage;
+    BSTR usage = NULL;
     while (pEnumerator)
     {
         HRESULT hr = pEnumerator->Next(WBEM_INFINITE, 1, 

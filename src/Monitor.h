@@ -1,13 +1,12 @@
 #ifndef MONITOR_H
 #define MONITOR_H
 
-#include <QObject>
-#include <QVariant>
+#include <string>
+#include <map>
 
-class Monitor : public QObject {
-	Q_OBJECT
+class Monitor{
 public:
-    Q_INVOKABLE QVariantMap init(); //initializes the APIs and SQL connections, returns various data about the computer's devices
-	Q_INVOKABLE QVariantMap getData(); //gets the hardware data (usage, temps), formats it so it's recognizable by the QML front-end	
+    std::map<std::string, std::string> init(); //initializes the APIs and SQL connections, returns various data about the computer's devices
+	std::map<std::string, int> getData(); //gets the hardware data (usage, temps)
 };
 #endif //MONITOR_H

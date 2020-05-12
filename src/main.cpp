@@ -34,6 +34,10 @@ int main(void) {
 	});
 
 	svr.Get("/getData", [&](const Request& req, Response& res) {
+		if (!already_initialized) {
+			res.set_content("{\"error\":\"Program not initialized\"}", "application/json");
+		}
+
 		map<string, int> m = monitor.getData();
 		map<string, int>::iterator i;
 		string json_string = "{";

@@ -17,25 +17,27 @@ int main(void) {
 	string init_res = "{";
 
 	svr.Get("/init", [&](const Request& req, Response& res) {
-		if (!already_initialized) {
-			map<string, string> init = monitor.init();
-			map<string, string>::iterator i;
-
-			for (i = init.begin(); i != init.end(); i++) {
-				init_res.append("\"" + i->first + "\":" + "\"" + i->second + "\",");
-			}
-			init_res.pop_back();
-			init_res.append("}");
-
-			already_initialized = true;
+		if (already_initialized) {
+			return res.set_content(init_res, "application/json");
 		}
+
+		map<string, string> init = monitor.init();
+		map<string, string>::iterator i;
+
+		for (i = init.begin(); i != init.end(); i++) {
+			init_res.append("\"" + i->first + "\":" + "\"" + i->second + "\",");
+		}
+		init_res.pop_back();
+		init_res.append("}");
+
+		already_initialized = true;
 
 		res.set_content(init_res, "application/json");
 	});
 
 	svr.Get("/getData", [&](const Request& req, Response& res) {
 		if (!already_initialized) {
-			res.set_content("{\"error\":\"Program not initialized\"}", "application/json");
+			return res.set_content("{\"error\":\"Program not initialized\"}", "application/json");
 		}
 
 		map<string, int> m = monitor.getData();

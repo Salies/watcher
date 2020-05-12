@@ -2,8 +2,6 @@
 #include <httplib.h>
 
 #include <iterator>
-#include <iostream>
-
 
 #define PORT 1234 //change to whatever port you want, lel
 
@@ -20,7 +18,6 @@ int main(void) {
 
 	svr.Get("/init", [&](const Request& req, Response& res) {
 		if (!already_initialized) {
-			std::cout << "\nn foi inicializado, iniciando...\n";
 			map<string, string> init = monitor.init();
 			map<string, string>::iterator i;
 

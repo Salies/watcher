@@ -132,11 +132,11 @@ void ProcessorMonitor::release(){
     cout << "released";
 }
 
-int ProcessorMonitor::queryCIMV2(){
+std::string ProcessorMonitor::queryCIMV2(std::string query, const wchar_t* get){
     pEnumerator = NULL;
     HRESULT hres = pSvcCIMV2->ExecQuery(
         bstr_t("WQL"), 
-        bstr_t("SELECT PercentProcessorTime FROM Win32_PerfFormattedData_PerfOS_Processor WHERE Name='_Total'"),
+        bstr_t(query.c_str()),
         WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY,
         NULL,
         &pEnumerator);
@@ -149,7 +149,7 @@ int ProcessorMonitor::queryCIMV2(){
         pSvcCIMV2->Release();
         pLoc->Release();
         CoUninitialize();
-        return -1;
+        return "-1";
     }
  
     IWbemClassObject *pclsObj = NULL;
@@ -168,14 +168,16 @@ int ProcessorMonitor::queryCIMV2(){
 
         VARIANT vtProp;
 
-        hr = pclsObj->Get(L"PercentProcessorTime", 0, &vtProp, 0, 0);
+        hr = pclsObj->Get(get, 0, &vtProp, 0, 0);
         usage = vtProp.bstrVal;
         VariantClear(&vtProp);
 
         pclsObj->Release();
     }
 
-    return _wtoi(usage);
+    char* converted = _com_util::ConvertBSTRToString(usage);
+
+    return std::string(converted);
 }
 
 int ProcessorMonitor::queryWMI(){

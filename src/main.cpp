@@ -14,17 +14,21 @@ int main(void) {
 	Server svr;
 	Monitor monitor;
 
-	//TODO: turn this into a HTTP call aswell
-	string init = monitor.init().begin()->second;
-	std::cout << init << "\n";
+	svr.Get("/init", [&](const Request& req, Response& res) {
+		map<string, string> init = monitor.init();
+		map<string, string>::iterator i;
 
-	svr.Get("/init", [](const Request& req, Response& res) {
-		res.set_content("Hello World!", "text/plain");
+		//TODO(?, cuz types): create function for json "encoding"
+		string json_string = "{";
+		for (i = init.begin(); i != init.end(); i++) {
+			json_string.append("\"" + i->first + "\":" + "\"" + i->second + "\",");
+		}
+
+		res.set_content(json_string, "application/json");
 	});
 
-	svr.Get("/getData", [](const Request& req, Response& res) {
-		Monitor mon;
-		map<string, int> m = mon.getData();
+	svr.Get("/getData", [&](const Request& req, Response& res) {
+		map<string, int> m = monitor.getData();
 		map<string, int>::iterator i;
 		string json_string = "{";
 		for (i = m.begin(); i != m.end(); i++) {

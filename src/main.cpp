@@ -1,30 +1,42 @@
-#include <QGuiApplication>
-#include <QQmlApplicationEngine>
-
-#include <QQmlContext>
-
 #include "Monitor.h"
+#include <httplib.h>
 
-int main(int argc, char* argv[])
-{
-    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+#include <iostream>
+#include <iterator>
 
-    QGuiApplication app(argc, argv);
+#define PORT 1234
 
-    QQmlApplicationEngine engine;
+int main(void) {
+	using namespace httplib;
+	using std::map;
+	using std::string;
 
-    Monitor monitor;
-    engine.rootContext()->setContextProperty("monitor", &monitor);
+	Server svr;
+	Monitor monitor;
 
-    const QUrl url(QStringLiteral("qrc:/main.qml"));
-    QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
-                     &app, [url](QObject *obj, const QUrl &objUrl) {
-        if (!obj && url == objUrl)
-            QCoreApplication::exit(-1);
-    }, Qt::QueuedConnection);
-    engine.load(url);
+	//TODO: turn this into a HTTP call aswell
+	string init = monitor.init().begin()->second;
+	std::cout << init << "\n";
 
-    QMetaObject::invokeMethod(engine.rootObjects().first(), "startUp");
+	svr.Get("/getData", [](const Request& req, Response& res) {
+		Monitor mon;
+		map<string, int> m = mon.getData();
+		map<string, int>::iterator i;
+		string json_string = "{";
+		for (i = m.begin(); i != m.end(); i++) {
+			json_string.append("\"" + i->first + "\":" + "\"" + std::to_string(i->second) + "\",");
+		}
+		json_string.pop_back(); //last character will be comma, so remove it --- is it possible to detect the antepenultimate element in an iterator loop? nway think this is easier/less consuming
+		json_string.append("}");
 
-    return app.exec();
+		res.set_content(json_string, "application/json");
+	});
+
+	svr.Get("/kill", [&](const Request& req, Response& res) {
+		svr.stop();
+	});
+
+	svr.listen("localhost", PORT);
+
+	return 0;
 }

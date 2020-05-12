@@ -8,13 +8,15 @@
 class ProcessorMonitor : public QObject {
     Q_OBJECT
 public:
+    bool init();
+    void release();
+    int queryCIMV2();
+    int queryWMI();
+
+private:
     IWbemLocator *pLoc;
     IEnumWbemClassObject* pEnumerator;
-    IWbemServices *pSvcCIMV2;
-    bool init();
-private:
-    void release();
-    bool queryCIMV2();
+    IWbemServices *pSvcCIMV2, *pSvcWMI;
 };
 
 #endif // PROCESSORMONITOR_H

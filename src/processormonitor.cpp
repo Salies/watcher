@@ -29,91 +29,85 @@ bool ProcessorMonitor::init(){
             << " Err code = 0x"
             << hex << hres << endl;
         CoUninitialize();
-        return 1;                 // Program has failed.
+        return false;
     }else{
         cout << "created iwebm locator\n";
     }
 
-    // Step 4: -----------------------------------------------------
-    // Connect to WMI through the IWbemLocator::ConnectServer method
-
+    /*
+        connect CIMV2
+    */
     pSvcCIMV2 = NULL;
- 
-    // Connect to the root\cimv2 namespace with
-    // the current user and obtain pointer pSvc
-    // to make IWbemServices calls.
-    hres = pLoc->ConnectServer(
-         _bstr_t(L"ROOT\\CIMV2"), // Object path of WMI namespace
-         NULL,                    // User name. NULL = current user
-         NULL,                    // User password. NULL = current
-         0,                       // Locale. NULL indicates current
-         NULL,                    // Security flags.
-         0,                       // Authority (for example, Kerberos)
-         0,                       // Context object 
-         &pSvcCIMV2                    // pointer to IWbemServices proxy
-         );
+
+    hres = pLoc->ConnectServer(_bstr_t(L"ROOT\\CIMV2"), NULL, NULL, 0, NULL, 0, 0, &pSvcCIMV2);
     
     if (FAILED(hres))
     {
-        cout << "Could not connect. Error code = 0x" 
-             << hex << hres << endl;
+        cout << "Could not connect. Error code = 0x" << hex << hres << endl;
         pLoc->Release();     
         CoUninitialize();
-        return 1;                // Program has failed.
+        return false;
     }
 
     cout << "Connected to ROOT\\CIMV2 WMI namespace" << endl;
 
-
-    // Step 5: --------------------------------------------------
-    // Set security levels on the proxy -------------------------
-
-    hres = CoSetProxyBlanket(
-       pSvcCIMV2,                        // Indicates the proxy to set
-       RPC_C_AUTHN_WINNT,           // RPC_C_AUTHN_xxx
-       RPC_C_AUTHZ_NONE,            // RPC_C_AUTHZ_xxx
-       NULL,                        // Server principal name 
-       RPC_C_AUTHN_LEVEL_CALL,      // RPC_C_AUTHN_LEVEL_xxx 
-       RPC_C_IMP_LEVEL_IMPERSONATE, // RPC_C_IMP_LEVEL_xxx
-       NULL,                        // client identity
-       EOAC_NONE                    // proxy capabilities 
-    );
+    hres = CoSetProxyBlanket(pSvcCIMV2, RPC_C_AUTHN_WINNT, RPC_C_AUTHZ_NONE, NULL, RPC_C_AUTHN_LEVEL_CALL, RPC_C_IMP_LEVEL_IMPERSONATE, NULL, EOAC_NONE);
 
     if (FAILED(hres))
     {
-        cout << "Could not set proxy blanket. Error code = 0x" 
-            << hex << hres << endl;
+        cout << "Could not set proxy blanket. Error code = 0x" << hex << hres << endl;
         pSvcCIMV2->Release();
         pLoc->Release();     
         CoUninitialize();
-        return 1;               // Program has failed.
+        return false;
     }
 
-    queryCIMV2();
+    /*
+        connect WMI
+    */
+    pSvcWMI = NULL;
 
-    release();
+    hres = pLoc->ConnectServer(_bstr_t(L"ROOT\\WMI"), NULL, NULL, 0, NULL, 0, 0, &pSvcWMI);
+    
+    if (FAILED(hres))
+    {
+        cout << "Could not connect. Error code = 0x" << hex << hres << endl;
+        pLoc->Release();     
+        CoUninitialize();
+        return false;
+    }
+
+    cout << "Connected to ROOT\\WMI WMI namespace" << endl;
+
+    hres = CoSetProxyBlanket(pSvcWMI, RPC_C_AUTHN_WINNT, RPC_C_AUTHZ_NONE, NULL, RPC_C_AUTHN_LEVEL_CALL, RPC_C_IMP_LEVEL_IMPERSONATE, NULL, EOAC_NONE);
+
+    if (FAILED(hres))
+    {
+        cout << "Could not set proxy blanket. Error code = 0x" << hex << hres << endl;
+        pSvcWMI->Release();
+        pLoc->Release();     
+        CoUninitialize();
+        return false;
+    }
 
     return true;
 }
 
 void ProcessorMonitor::release(){
     pSvcCIMV2->Release();
+    pSvcWMI->Release();
     pLoc->Release();
     pEnumerator->Release();
     CoUninitialize();
     cout << "released";
 }
 
-bool ProcessorMonitor::queryCIMV2(){
-    // Step 6: --------------------------------------------------
-    // Use the IWbemServices pointer to make requests of WMI ----
-
-    // For example, get the name of the operating system
+int ProcessorMonitor::queryCIMV2(){
     pEnumerator = NULL;
     HRESULT hres = pSvcCIMV2->ExecQuery(
         bstr_t("WQL"), 
-        bstr_t("SELECT * FROM Win32_OperatingSystem"),
-        WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY, 
+        bstr_t("SELECT PercentProcessorTime FROM Win32_PerfFormattedData_PerfOS_Processor WHERE Name='_Total'"),
+        WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY,
         NULL,
         &pEnumerator);
     
@@ -125,15 +119,13 @@ bool ProcessorMonitor::queryCIMV2(){
         pSvcCIMV2->Release();
         pLoc->Release();
         CoUninitialize();
-        return 1;               // Program has failed.
+        return -1;
     }
-
-    // Step 7: -------------------------------------------------
-    // Get the data from the query in step 6 -------------------
  
     IWbemClassObject *pclsObj = NULL;
     ULONG uReturn = 0;
    
+    BSTR usage;
     while (pEnumerator)
     {
         HRESULT hr = pEnumerator->Next(WBEM_INFINITE, 1, 
@@ -146,43 +138,68 @@ bool ProcessorMonitor::queryCIMV2(){
 
         VARIANT vtProp;
 
-        // Get the value of the Name property
-        hr = pclsObj->Get(L"Name", 0, &vtProp, 0, 0);
-        wcout << " OS Name : " << vtProp.bstrVal << endl;
+        hr = pclsObj->Get(L"PercentProcessorTime", 0, &vtProp, 0, 0);
+        usage = vtProp.bstrVal;
         VariantClear(&vtProp);
 
         pclsObj->Release();
     }
 
-    return true;
+    return _wtoi(usage);
 }
 
-/*bool ProcessorMonitor::connectToCIMV2(){
-    pSvcCIMV2 = NULL;
-    
-    HRESULT hres = pLoc->ConnectServer(
-         _bstr_t(L"ROOT\\CIMV2"), // Object path of WMI namespace
-         NULL,                    // User name. NULL = current user
-         NULL,                    // User password. NULL = current
-         0,                       // Locale. NULL indicates current
-         NULL,                    // Security flags.
-         0,                       // Authority (for example, Kerberos)
-         0,                       // Context object 
-         &pSvcCIMV2                    // pointer to IWbemServices proxy
-         );
-    
+int ProcessorMonitor::queryWMI(){
+    HRESULT hr;
+    pEnumerator = NULL;
+    IWbemClassObject* pclsObj = NULL;
+    ULONG uReturn = 0;
+
+    HRESULT hres = pSvcWMI->ExecQuery(
+        bstr_t("WQL"),
+        bstr_t("SELECT CurrentTemperature FROM MSAcpi_ThermalZoneTemperature"),
+        WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY,
+        NULL,
+        &pEnumerator);
+
     if (FAILED(hres))
     {
-        qDebug() << "deu bosta 4!";
-        pLoc->Release();     
+        cout << "Query for operating system name failed."
+            << " Error code = 0x"
+            << hex << hres << endl;
+        pSvcWMI->Release();
+        pLoc->Release();
         CoUninitialize();
-        return false;
+        return -1;
     }
 
-    qDebug() << "CIMV2 conectado";
+    int index = 0, temps[2] = {};
+    while (pEnumerator)
+    {
+        if(index > 1) //I've seen some weird stuff related to how many temps this returns, let's guarantee it's only 2
+            break;
 
-    return true;
-}*/
+        hr = pEnumerator->Next(WBEM_INFINITE, 1,
+            &pclsObj, &uReturn);
+
+        if (0 == uReturn)
+        {
+            break;
+        }
+
+        VARIANT vtProp;
+
+        hr = pclsObj->Get(L"CurrentTemperature", 0, &vtProp, 0, 0);
+        temps[index] = vtProp.uintVal;
+        VariantClear(&vtProp);
+
+        index++;
+        pclsObj->Release();
+    }
+
+    int mediumTemp = (temps[0] + temps[1]) / 2;
+
+    return (mediumTemp / 10) - 273; //273.15 would be the more accurate approximation, but it's too ugly for the program XD
+}
 
 /*
 Reference: https://docs.microsoft.com/en-us/windows/win32/wmisdk/example--getting-wmi-data-from-the-local-computer

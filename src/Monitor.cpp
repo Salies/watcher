@@ -21,10 +21,14 @@ QVariantMap Monitor::init(){
 
 QVariantMap Monitor::getData(){
     QMap <QString, QVariant>m;
-    //qDebug() << "pegando dados por segundo";
+    qDebug() << "pegando dados por segundo";
 
     m.insert("graphics_usage", nvidia_monitor.getDeviceUtilization());
     m.insert("graphics_temp", nvidia_monitor.getDeviceTemperature());
+    m.insert("cpu_usage", processor_monitor.queryCIMV2());
+    m.insert("cpu_temp", processor_monitor.queryWMI());
+
+    qDebug() << m;
 
     return QVariantMap(m);
 }

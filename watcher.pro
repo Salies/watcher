@@ -16,7 +16,8 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
         src/Monitor.cpp \
         src/NvidiaMonitor.cpp \
-        src/main.cpp
+        src/main.cpp \
+        src/processormonitor.cpp
 
 RESOURCES += resources/qml.qrc
 
@@ -33,7 +34,8 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 HEADERS += \
     src/Monitor.h \
-    src/NvidiaMonitor.h
+    src/NvidiaMonitor.h \
+    src/processormonitor.h
 
 win32: LIBS += -L$$PWD/lib/ -lnvml
 
@@ -41,3 +43,8 @@ INCLUDEPATH += $$PWD/include
 DEPENDPATH += $$PWD/include
 
 RC_ICONS = resources/img/icon.ico
+
+win32-msvc* {
+    CONFIG += embed_manifest_exe
+    QMAKE_LFLAGS_WINDOWS += $$quote( /MANIFESTUAC:\"level=\'requireAdministrator\' uiAccess=\'false\'\" )
+}

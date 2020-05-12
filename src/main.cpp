@@ -3,7 +3,7 @@
 
 #include <iterator>
 
-#define PORT 1234
+#define PORT 1234 //change to whatever port you want, lel
 
 int main(void) {
 	using namespace httplib;

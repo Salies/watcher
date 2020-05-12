@@ -60,8 +60,6 @@ bool ProcessorMonitor::init(){
             << hex << hres << endl;
         CoUninitialize();
         return false;
-    }else{
-        cout << "created iwebm locator\n";
     }
 
     /*
@@ -240,7 +238,7 @@ int ProcessorMonitor::getRAM() {
     DWORDLONG totalPhysMem = memInfo.ullTotalPhys;
     DWORDLONG physMemUsed = totalPhysMem - memInfo.ullAvailPhys;
 
-    return (100 * physMemUsed) / totalPhysMem; //TODO FIX: conversion of DWORDLONG to int, possible data loss
+    return int((100 * physMemUsed) / totalPhysMem);
 }
 
 /*

@@ -240,7 +240,7 @@ int ProcessorMonitor::getRAM() {
     DWORDLONG totalPhysMem = memInfo.ullTotalPhys;
     DWORDLONG physMemUsed = totalPhysMem - memInfo.ullAvailPhys;
 
-    return (100 * physMemUsed) / totalPhysMem;
+    return (100 * physMemUsed) / totalPhysMem; //TODO FIX: conversion of DWORDLONG to int, possible data loss
 }
 
 /*

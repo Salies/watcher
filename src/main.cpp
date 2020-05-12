@@ -18,6 +18,10 @@ int main(void) {
 	string init = monitor.init().begin()->second;
 	std::cout << init << "\n";
 
+	svr.Get("/init", [](const Request& req, Response& res) {
+		res.set_content("Hello World!", "text/plain");
+	});
+
 	svr.Get("/getData", [](const Request& req, Response& res) {
 		Monitor mon;
 		map<string, int> m = mon.getData();
@@ -33,6 +37,7 @@ int main(void) {
 	});
 
 	svr.Get("/kill", [&](const Request& req, Response& res) {
+		monitor.exit();
 		svr.stop();
 	});
 

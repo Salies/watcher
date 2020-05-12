@@ -9,6 +9,7 @@ public:
     void release();
     int queryCIMV2();
     int queryWMI();
+    int getRAM();
 
 private:
     IWbemLocator *pLoc;

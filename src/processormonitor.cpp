@@ -1,7 +1,5 @@
 #define _WIN32_DCOM
 #include <iostream>
-#include <cstdio>
-using namespace std;
 #include <comdef.h>
 #include <Wbemidl.h>
 
@@ -10,6 +8,10 @@ using namespace std;
 #pragma comment(lib, "wbemuuid.lib")
 
 #include "processormonitor.h"
+
+using std::cout;
+using std::hex;
+using std::endl;
 
 bool ProcessorMonitor::init(){
     HRESULT hres;
@@ -227,6 +229,16 @@ int ProcessorMonitor::queryWMI(){
     int mediumTemp = (temps[0] + temps[1]) / 2;
 
     return (mediumTemp / 10) - 273; //273.15 would be the more accurate approximation, but it's too ugly for the program XD
+}
+
+int ProcessorMonitor::getRAM() {
+    MEMORYSTATUSEX memInfo;
+    memInfo.dwLength = sizeof(MEMORYSTATUSEX);
+    GlobalMemoryStatusEx(&memInfo);
+    DWORDLONG totalPhysMem = memInfo.ullTotalPhys;
+    DWORDLONG physMemUsed = totalPhysMem - memInfo.ullAvailPhys;
+
+    return (100 * physMemUsed) / totalPhysMem;
 }
 
 /*

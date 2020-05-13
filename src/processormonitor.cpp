@@ -2,8 +2,8 @@
 #include <iostream>
 #include <comdef.h>
 #include <Wbemidl.h>
-
 #include <Windows.h>
+#include <vector>
 
 #pragma comment(lib, "wbemuuid.lib")
 
@@ -202,12 +202,9 @@ int ProcessorMonitor::queryWMI(){
         return -1;
     }
 
-    int index = 0, temps[2] = {};
+    std::vector<int> temps;
     while (pEnumerator)
     {
-        if(index > 1) //I've seen some weird stuff related to how many temps this returns, let's guarantee it's only 2
-            break;
-
         hr = pEnumerator->Next(WBEM_INFINITE, 1,
             &pclsObj, &uReturn);
 
@@ -219,14 +216,16 @@ int ProcessorMonitor::queryWMI(){
         VARIANT vtProp;
 
         hr = pclsObj->Get(L"CurrentTemperature", 0, &vtProp, 0, 0);
-        temps[index] = vtProp.uintVal;
+        temps.push_back(vtProp.uintVal);
         VariantClear(&vtProp);
 
-        index++;
         pclsObj->Release();
     }
 
-    int mediumTemp = (temps[0] + temps[1]) / 2;
+    int mediumTemp = 0;
+    for (std::vector<int>::iterator it = temps.begin(); it != temps.end(); it++)
+        mediumTemp += *it;
+    mediumTemp = mediumTemp / temps.size();
 
     return (mediumTemp / 10) - 273; //273.15 would be the more accurate approximation, but it's too ugly for the program XD
 }

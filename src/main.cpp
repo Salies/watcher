@@ -57,7 +57,7 @@ int main(void) {
 		svr.stop();
 	});
 
-	svr.listen("localhost", PORT);
+	svr.listen("127.0.0.1", PORT);
 
 	return 0;
 }

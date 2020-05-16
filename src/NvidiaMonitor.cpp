@@ -56,6 +56,17 @@ int NvidiaMonitor::getDeviceTemperature(){
     return (int) device_temperature;
 }
 
+int NvidiaMonitor::getVRAMusage() {
+    nvmlMemory_t memory;
+    nvmlReturn_t result;
+
+    result = nvmlDeviceGetMemoryInfo(device, &memory);
+
+    unsigned __int64 mem_usage = (100 * memory.used) / memory.total;
+
+    return (int) mem_usage;
+}
+
 /*
 References:
 https://docs.nvidia.com/deploy/nvml-api/group__nvmlDeviceQueries.html#group__nvmlDeviceQueries (index: https://docs.nvidia.com/deploy/nvml-api/index.html)

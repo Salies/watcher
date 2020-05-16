@@ -225,7 +225,10 @@ int ProcessorMonitor::queryWMI(){
     int mediumTemp = 0;
     for (std::vector<int>::iterator it = temps.begin(); it != temps.end(); it++)
         mediumTemp += *it;
-    mediumTemp = mediumTemp / temps.size();
+
+    if (temps.size()) { //prevents crash if access to ROOT/WMI is denied
+        mediumTemp = mediumTemp / temps.size();
+    }
 
     return (mediumTemp / 10) - 273; //273.15 would be the more accurate approximation, but it's too ugly for the program XD
 }

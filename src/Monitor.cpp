@@ -24,6 +24,7 @@ map<string, int> Monitor::getData(){
 
     m.insert(pair<string, int>("graphics_usage", nvidia_monitor.getDeviceUtilization()));
     m.insert(pair<string, int>("graphics_temp", nvidia_monitor.getDeviceTemperature()));
+    m.insert(pair<string, int>("vram_usage", nvidia_monitor.getVRAMusage()));
     m.insert(pair<string, int>("cpu_usage", std::stoi(processor_monitor.queryCIMV2("SELECT PercentProcessorTime FROM Win32_PerfFormattedData_PerfOS_Processor WHERE Name='_Total'", L"PercentProcessorTime"))));
     m.insert(pair<string, int>("cpu_temp", processor_monitor.queryWMI()));
     m.insert(pair<string, int>("ram_usage", processor_monitor.getRAM()));
